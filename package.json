@@ -1,0 +1,42 @@
+{
+  "name": "hardware-wallet-connection",
+  "version": "1.0.0",
+  "description": "",
+  "source-temp": "src/index.ts",
+  "main-temp": "dist/main.js",
+  "types": "lib/index.d.ts",
+  "type": "module",
+  "main": "./lib/index.umd.cjs",
+  "module": "./lib/index.js",
+  "exports": {
+    ".": {
+      "import": "./lib/index.js",
+      "require": "./lib/index.umd.cjs"
+    }
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "pretest": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "everdimension",
+  "license": "MIT",
+  "devDependencies": {
+    "@ledgerhq/devices": "^8.0.4",
+    "@rollup/plugin-inject": "^5.0.3",
+    "@types/node": "^20.3.3",
+    "@types/w3c-web-usb": "^1.0.6",
+    "process": "^0.11.10",
+    "typescript": "^5.1.6",
+    "vite": "^4.4.7",
+    "vite-plugin-dts": "^3.4.0"
+  },
+  "dependencies": {
+    "@ledgerhq/hw-app-eth": "^6.33.6",
+    "@ledgerhq/hw-transport-webusb": "^6.27.16",
+    "buffer": "^6.0.3",
+    "nanoevents": "^7.0.1"
+  }
+}
