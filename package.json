@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "start": "vite",
+    "start": "vite build --watch",
     "build": "vite build",
     "pretest": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
