@@ -9,6 +9,10 @@
     <h2>hi</h2>
     <button>click</button>
     <div id="root"></div>
+    <script type="module">
+      import { Buffer } from "buffer";
+      globalThis.Buffer = Buffer;
+    </script>
     <script type="module" src="./src/app.ts"></script>
   </body>
 </html>

@@ -1,9 +1,10 @@
 console.log("app");
-// import { Buffer } from "buffer";
-// globalThis.Buffer = Buffer;
-import { connectDevice } from "./index";
-console.log({ connectDevice });
+import { signTransaction } from "./signing/signTransaction";
+import { sample1, test } from "./signing/signTransaction.test";
 
-document.querySelector("button")?.addEventListener("click", () => {
-  connectDevice();
+test();
+
+document.querySelector("button")?.addEventListener("click", async () => {
+  const result = await signTransaction(sample1.derivationPath, sample1.tx);
+  console.log(result);
 });

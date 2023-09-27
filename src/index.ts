@@ -7,3 +7,7 @@ export { connectDevice, checkDevice } from "./device/connectDevice";
 export { interpretError, deniedByUser } from "./device/errors";
 export { getAddressByDerivationPath, getAddresses } from "./device/addresses";
 export { supportsLedger } from "./device/support";
+export {
+  signTransaction,
+  serializeTransaction,
+} from "./signing/signTransaction";
