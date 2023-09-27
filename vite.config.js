@@ -1,35 +1,51 @@
 // vite.config.js
-import { resolve } from "path";
+import fs from "fs";
+import path from "path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import packageJson from "./package.json";
 // import inject from "@rollup/plugin-inject";
 
 export default defineConfig({
   build: {
     lib: {
       // Could also be a dictionary or array of multiple entry points
-      entry: resolve(__dirname, "src/index.ts"),
+      entry: path.resolve(__dirname, "src/index.ts"),
       name: "HardwareWalletConnection",
       // the proper extensions will be added
       fileName: "index",
     },
     outDir: "lib",
-    // rollupOptions: {
-    //   plugins: [inject({ Buffer: ["Buffer", "Buffer"] })],
-    // },
-    // build: {
-    //   rollupOptions: {
-    //     plugins: [inject({ Buffer: ["Buffer", "Buffer"] })],
-    //   },
-    // },
   },
   plugins: [
     dts({
+      exclude: ["events"],
+      clearPureImport: true,
+      rollupTypes: true,
       bundledPackages: [
-        "@ledgerhq/hw-app-eth",
+        "@ledgerhq/hw-transport",
         "@ledgerhq/hw-transport-webusb",
+        "@ledgerhq/devices",
+        "ethers",
+        "@ledgerhq/domain-service",
+        "@ledgerhq/types-live",
+        "@ledgerhq/hw-app-eth",
       ],
-      // exclude: [],
+      afterBuild: async () => {
+        /**
+         * vite-plugin-dts does an awesome job of inlining declarations
+         * of the dependencies, but has a weird bug of including just one
+         * incorrect import. Here we absolutely inelegantly fix this bug
+         * by replacing the import with an unknown type
+         */
+        const filePath = packageJson.types;
+        const filePathAbs = path.join(__dirname, filePath);
+        const content = fs.readFileSync(filePathAbs, "utf-8");
+        const searchValue = "import { EIP712Message } from './modules/EIP712';";
+        const replaceValue = "type EIP712Message = unknown;";
+        const replaced = content.replace(searchValue, replaceValue);
+        fs.writeFileSync(filePath, replaced);
+      },
     }),
   ],
 });
