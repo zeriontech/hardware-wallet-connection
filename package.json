@@ -16,6 +16,7 @@
     "start": "vite build --watch",
     "dev": "vite",
     "build": "vite build",
+    "prepare": "npm run build",
     "pretest": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,22 +24,22 @@
   "author": "everdimension",
   "license": "MIT",
   "devDependencies": {
+    "@ethersproject/bignumber": "^5.7.0",
+    "@ethersproject/transactions": "^5.7.0",
     "@ledgerhq/devices": "^8.0.4",
+    "@ledgerhq/hw-app-eth": "^6.33.6",
+    "@ledgerhq/hw-transport-webusb": "^6.27.16",
     "@rollup/plugin-inject": "^5.0.3",
     "@types/node": "^20.3.3",
     "@types/w3c-web-usb": "^1.0.6",
     "buffer": "^6.0.3",
+    "ethers": "^6.7.1",
     "process": "^0.11.10",
     "typescript": "^5.1.6",
     "vite": "^4.4.7",
     "vite-plugin-dts": "^3.4.0"
   },
   "dependencies": {
-    "@ethersproject/bignumber": "^5.7.0",
-    "@ethersproject/transactions": "^5.7.0",
-    "@ledgerhq/hw-app-eth": "^6.33.6",
-    "@ledgerhq/hw-transport-webusb": "^6.27.16",
-    "ethers": "^6.7.1",
     "nanoevents": "^7.0.1"
   }
 }

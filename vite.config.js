@@ -23,13 +23,15 @@ export default defineConfig({
       clearPureImport: true,
       rollupTypes: true,
       bundledPackages: [
+        "@ethersproject/bignumber",
+        "@ethersproject/transactions",
+        "@ledgerhq/devices",
+        "@ledgerhq/domain-service",
+        "@ledgerhq/hw-app-eth",
         "@ledgerhq/hw-transport",
         "@ledgerhq/hw-transport-webusb",
-        "@ledgerhq/devices",
-        "ethers",
-        "@ledgerhq/domain-service",
         "@ledgerhq/types-live",
-        "@ledgerhq/hw-app-eth",
+        "ethers",
       ],
       afterBuild: async () => {
         /**
