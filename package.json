@@ -1,6 +1,6 @@
 {
   "name": "@zeriontech/hardware-wallet-connection",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "types": "lib/index.d.ts",
   "type": "module",
