@@ -1,9 +1,7 @@
 {
-  "name": "hardware-wallet-connection",
+  "name": "@zeriontech/hardware-wallet-connection",
   "version": "1.0.0",
   "description": "",
-  "source-temp": "src/index.ts",
-  "main-temp": "dist/main.js",
   "types": "lib/index.d.ts",
   "type": "module",
   "main": "./lib/index.umd.cjs",
