@@ -1,5 +1,7 @@
 type LedgerError = Error & { statusCode?: number };
 
+export class ConnectError extends Error {}
+
 export function interpretError(error: LedgerError) {
   const messages = {
     TransportError: () =>
@@ -25,4 +27,8 @@ export function interpretError(error: LedgerError) {
 
 export function deniedByUser(error: LedgerError) {
   return error.statusCode === 27013;
+}
+
+export function isConnectError(error: LedgerError) {
+  return error instanceof ConnectError;
 }

@@ -1,7 +1,8 @@
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
-import AppEth from '@ledgerhq/hw-app-eth';
-import { enqueueCall } from './utils/requestQueue';
-import { emitter } from '../events';
+import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+import AppEth from "@ledgerhq/hw-app-eth";
+import { enqueueCall } from "./utils/requestQueue";
+import { emitter } from "../events";
+import { ConnectError } from "./errors";
 
 async function ensureEthereumAppIsRunning(appEth: AppEth) {
   try {
@@ -14,7 +15,7 @@ async function ensureEthereumAppIsRunning(appEth: AppEth) {
     console.log({ version }); // eslint-disable-line
     return { version };
   } catch (error) {
-    emitter.emit('error', { error });
+    emitter.emit("error", { error });
     throw error;
   }
 }
@@ -26,7 +27,7 @@ export async function connectDevice() {
     const { version } = await ensureEthereumAppIsRunning(appEth);
     return { appEth, transport, appVersion: version };
   } catch (error) {
-    emitter.emit('error', { error });
+    emitter.emit("error", { error });
     throw error;
   }
 }
@@ -40,13 +41,13 @@ export async function checkDevice() {
   try {
     const transport = await enqueueCall(() => TransportWebUSB.openConnected());
     if (!transport) {
-      throw new Error('disconnected');
+      throw new ConnectError("disconnected");
     }
     const appEth = new AppEth(transport);
     const { version } = await ensureEthereumAppIsRunning(appEth);
     return { appEth, transport, appVersion: version };
   } catch (error) {
-    emitter.emit('error', { error });
+    emitter.emit("error", { error });
     throw error;
   }
 }
