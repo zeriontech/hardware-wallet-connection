@@ -111,6 +111,22 @@ Serialize a transaction for Ledger signing.
 const serializedTransaction = serializeTransaction(transaction);
 ```
 
+#### `personalSign(derivationPath: string, message: string)`
+
+Sign a message using the Ledger device.
+
+```javascript
+const signature = personalSign("44'/60'/1'/0/0", message);
+```
+
+#### `signTypedData_v4(derivationPath: string, typedData: string | TypedData)`
+
+Sign a typed EIP-712 message using the Ledger device.
+
+```javascript
+const signature = signTypedData_v4("44'/60'/1'/0/0", typedData);
+```
+
 ## Author
 
 everdimension <everdimension@gmail.com>
