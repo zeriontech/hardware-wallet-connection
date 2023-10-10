@@ -11,3 +11,4 @@ export {
   signTransaction,
   serializeTransaction,
 } from "./signing/signTransaction";
+export { personalSign, signTypedData_v4 } from "./signing/signMessage";
