@@ -94,7 +94,8 @@ export async function signTypedData_v4(
     primaryType,
   } = prepareTypeData(rawTypedData);
   const types = removeUnusedTypes(rawTypes, primaryType);
-  const domainTypes = generateDomainTypes(domain);
+  const domainTypes =
+    { [DOMAIN_TYPE]: rawTypes[DOMAIN_TYPE] } || generateDomainTypes(domain);
 
   const domainSeparator = TypedDataEncoder.hashStruct(
     DOMAIN_TYPE,
