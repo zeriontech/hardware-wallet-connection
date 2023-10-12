@@ -44,13 +44,21 @@ function prepareTypeData(rawTypedData: string | TypedData): TypedData {
 const ESCAPE_ARRAY_SYMBOLS_PATTERN = /^([^\x5b]*)(\x5b|$)/;
 const DOMAIN_TYPE = "EIP712Domain";
 const DOMAIN_TYPES = {
-  [DOMAIN_TYPE]: [
-    { name: "name", type: "string" },
-    { name: "version", type: "string" },
-    { name: "chainId", type: "uint256" },
-    { name: "verifyingContract", type: "address" },
-  ],
+  name: "string",
+  version: "string",
+  chainId: "uint256",
+  verifyingContract: "address",
+  salt: "bytes32",
 };
+
+function generateDomainTypes(domain: TypedDataDomain) {
+  return {
+    [DOMAIN_TYPE]: Object.keys(domain).map(name => ({
+      name,
+      type: DOMAIN_TYPES[name as keyof typeof DOMAIN_TYPES],
+    })),
+  };
+}
 
 function removeUnusedTypes(
   types: TypedData["types"],
@@ -86,9 +94,13 @@ export async function signTypedData_v4(
     primaryType,
   } = prepareTypeData(rawTypedData);
   const types = removeUnusedTypes(rawTypes, primaryType);
+  const domainTypes = rawTypes[DOMAIN_TYPE]
+    ? { [DOMAIN_TYPE]: rawTypes[DOMAIN_TYPE] }
+    : generateDomainTypes(domain);
+
   const domainSeparator = TypedDataEncoder.hashStruct(
     DOMAIN_TYPE,
-    DOMAIN_TYPES,
+    domainTypes,
     domain,
   );
   const hashStructMessage = TypedDataEncoder.hashStruct(
