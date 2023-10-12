@@ -18,6 +18,7 @@ export function interpretError(error: LedgerError) {
       }
       return "Please make sure Ethereum app is running on the device";
     },
+    LockedDeviceError: () => "Please unlock your device",
   };
   if (error.name in messages) {
     return messages[error.name as keyof typeof messages](error);
