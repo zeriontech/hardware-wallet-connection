@@ -6,7 +6,7 @@ export function interpretError(error: LedgerError) {
   const messages = {
     TransportError: () =>
       "Connection error. Try reconnecting your ledger device",
-    TransportOpenUserCancelled: (e: LedgerError) => e.message,
+    TransportOpenUserCancelled: () => "No device selected",
     TransportInterfaceNotAvailable: () =>
       "Device not available. If your device is currently being used by another app, try disconnecting it from that app",
     TransportStatusError: (e: LedgerError) => {
