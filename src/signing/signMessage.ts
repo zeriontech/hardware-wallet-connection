@@ -2,16 +2,19 @@ import type {
   TypedDataDomain,
   TypedDataField,
 } from "@ethersproject/abstract-signer";
-import { hexlify, toUtf8Bytes, TypedDataEncoder } from "ethers";
+import { hexlify, toUtf8Bytes, isHexString, TypedDataEncoder } from "ethers";
 import omit from "lodash/omit";
 import { connectDevice } from "../device/connectDevice";
 import { decodeMessageSign } from "../device/utils/decodeMessageSign";
 
 export async function personalSign(derivationPath: string, message: string) {
   const { appEth } = await connectDevice();
+  const messageHex = isHexString(message)
+    ? hexlify(message)
+    : hexlify(toUtf8Bytes(message));
   const result = await appEth.signPersonalMessage(
     derivationPath,
-    hexlify(toUtf8Bytes(message)).slice(2), // Ledger expects hex value without 0x prefix
+    messageHex.slice(2), // Ledger expects hex value without 0x prefix
   );
   return decodeMessageSign(result);
 }
