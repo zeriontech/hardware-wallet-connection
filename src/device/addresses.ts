@@ -5,6 +5,7 @@ import { emitter } from "../events";
 const paths = {
   ledger: (index: number) => `44'/60'/0'/${index}`,
   ledgerLive: (index: number) => `44'/60'/${index}'/0/0`,
+  bip44: (index: number) => `44'/60'/0'/0/${index}`,
 };
 
 type PathType = keyof typeof paths;
