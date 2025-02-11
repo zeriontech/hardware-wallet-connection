@@ -6,6 +6,7 @@ const paths = {
   ledger: (index: number) => `44'/60'/0'/${index}`,
   ledgerLive: (index: number) => `44'/60'/${index}'/0/0`,
   bip44: (index: number) => `44'/60'/0'/0/${index}`,
+  rootstock: (index: number) => `44'/137'/0'/0/${index}`,
 };
 
 type PathType = keyof typeof paths;
