@@ -32,10 +32,7 @@ export async function connectDevice({
         const connectedDevices = dmk.listConnectedDevices();
         const alreadyConnected = connectedDevices.find(d => d.id === device.id);
         if (alreadyConnected) {
-          resolve({
-            sessionId: alreadyConnected.sessionId,
-            device,
-          });
+          resolve({ sessionId: alreadyConnected.sessionId, device });
         }
         dmk.connect({ device }).then(sId => {
           resolve({ sessionId: sId, device });
@@ -50,8 +47,10 @@ export async function connectDevice({
 
 export async function checkDevice({
   transportIdentifier,
+  deviceId,
 }: {
   transportIdentifier: TransportIdentifier;
+  deviceId?: string;
 }) {
   return new Promise<{
     sessionId: string;
@@ -61,21 +60,16 @@ export async function checkDevice({
       .listenToAvailableDevices({ transport: transportIdentifier })
       .subscribe(devices => {
         if (devices.length > 0) {
-          const connectedDevices = dmk.listConnectedDevices();
-          const alreadyConnected = connectedDevices.find(
-            d => d.id === devices[0].id,
-          );
-          if (alreadyConnected) {
-            resolve({
-              sessionId: alreadyConnected.sessionId,
-              device: devices[0],
-            });
+          const expectedDeviceId = deviceId || devices[0].id;
+          const device = devices.find(d => d.id === expectedDeviceId)!;
+          const connectedDevice = dmk
+            .listConnectedDevices()
+            .find(d => d.id === expectedDeviceId);
+          if (connectedDevice) {
+            resolve({ sessionId: connectedDevice.sessionId, device });
           }
-          dmk.connect({ device: devices[0] }).then(sId => {
-            resolve({
-              sessionId: sId,
-              device: devices[0],
-            });
+          dmk.connect({ device }).then(sId => {
+            resolve({ sessionId: sId, device });
           });
         }
       });
