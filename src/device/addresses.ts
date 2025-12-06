@@ -1,4 +1,3 @@
-import { emitter } from "../events";
 import { DefaultSignerEth } from "@ledgerhq/device-signer-kit-ethereum/internal/DefaultSignerEth.js";
 import { DeviceActionStatus } from "@ledgerhq/device-management-kit";
 import { DefaultSignerSolana } from "@ledgerhq/device-signer-kit-solana/internal/DefaultSignerSolana.js";
@@ -25,137 +24,118 @@ async function getAddressByDerivationPath(
   appEth: DefaultSignerEth,
   { derivationPath }: { derivationPath: string },
 ) {
-  try {
-    const { observable } = appEth.getAddress(derivationPath);
-    return new Promise<{ address: string }>((resolve, reject) =>
-      observable.subscribe({
-        next: state => {
-          switch (state.status) {
-            case DeviceActionStatus.NotStarted: {
-              console.log("The action is not started yet.");
-              break;
-            }
-            case DeviceActionStatus.Pending: {
-              const {
-                intermediateValue: { requiredUserInteraction },
-              } = state;
-              // Access the intermediate value here, explained below
-              console.log(
-                "The action is pending and the intermediate value is: ",
-                requiredUserInteraction,
-              );
-              break;
-            }
-            case DeviceActionStatus.Stopped: {
-              console.log("The action has been stopped.");
-              break;
-            }
-            case DeviceActionStatus.Completed: {
-              const { output } = state;
-              // Access the output of the completed action here
-              console.log("The action has been completed: ", output);
-              resolve(output);
-              break;
-            }
-            case DeviceActionStatus.Error: {
-              const { error } = state;
-              // Access the error here if occurred
-              console.log("An error occurred during the action: ", error);
-              reject(error);
-              break;
-            }
+  console.log("Getting address for derivation path:", derivationPath);
+  const { observable } = appEth.getAddress(derivationPath);
+  return new Promise<{ address: string }>((resolve, reject) =>
+    observable.subscribe({
+      next: state => {
+        switch (state.status) {
+          case DeviceActionStatus.NotStarted: {
+            console.log("The action is not started yet.");
+            break;
           }
-        },
-      }),
-    );
-  } catch (error) {
-    emitter.emit("error", { error });
-    throw error;
-  }
+          case DeviceActionStatus.Pending: {
+            const {
+              intermediateValue: { requiredUserInteraction },
+            } = state;
+            // Access the intermediate value here, explained below
+            console.log(
+              "The action is pending and the intermediate value is: ",
+              requiredUserInteraction,
+            );
+            break;
+          }
+          case DeviceActionStatus.Stopped: {
+            console.log("The action has been stopped.");
+            break;
+          }
+          case DeviceActionStatus.Completed: {
+            const { output } = state;
+            // Access the output of the completed action here
+            console.log("The action has been completed: ", output);
+            resolve(output);
+            break;
+          }
+          case DeviceActionStatus.Error: {
+            const { error } = state;
+            // Access the error here if occurred
+            console.log("An error occurred during the action: ", error);
+            reject(error);
+            break;
+          }
+        }
+      },
+    }),
+  );
 }
 
 async function getSolanaAddressByDerivationPath(
   appSol: DefaultSignerSolana,
   { derivationPath }: { derivationPath: string },
 ) {
-  try {
-    const { observable } = appSol.getAddress(derivationPath);
-    return new Promise<{ address: string }>((resolve, reject) =>
-      observable.subscribe({
-        next: state => {
-          switch (state.status) {
-            case DeviceActionStatus.NotStarted: {
-              console.log("The action is not started yet.");
-              break;
-            }
-            case DeviceActionStatus.Pending: {
-              const {
-                intermediateValue: { requiredUserInteraction },
-              } = state;
-              console.log(
-                "The action is pending and the intermediate value is: ",
-                requiredUserInteraction,
-              );
-              break;
-            }
-            case DeviceActionStatus.Stopped: {
-              console.log("The action has been stopped.");
-              break;
-            }
-            case DeviceActionStatus.Completed: {
-              const { output } = state;
-              console.log("The action has been completed: ", output);
-              resolve({ address: output });
-              break;
-            }
-            case DeviceActionStatus.Error: {
-              const { error } = state;
-              console.log("An error occurred during the action: ", error);
-              reject(error);
-              break;
-            }
+  const { observable } = appSol.getAddress(derivationPath);
+  return new Promise<{ address: string }>((resolve, reject) =>
+    observable.subscribe({
+      next: state => {
+        switch (state.status) {
+          case DeviceActionStatus.NotStarted: {
+            console.log("The action is not started yet.");
+            break;
           }
-        },
-      }),
-    );
-  } catch (error) {
-    emitter.emit("error", { error });
-    throw error;
-  }
+          case DeviceActionStatus.Pending: {
+            const {
+              intermediateValue: { requiredUserInteraction },
+            } = state;
+            console.log(
+              "The action is pending and the intermediate value is: ",
+              requiredUserInteraction,
+            );
+            break;
+          }
+          case DeviceActionStatus.Stopped: {
+            console.log("The action has been stopped.");
+            break;
+          }
+          case DeviceActionStatus.Completed: {
+            const { output } = state;
+            console.log("The action has been completed: ", output);
+            resolve({ address: output });
+            break;
+          }
+          case DeviceActionStatus.Error: {
+            const { error } = state;
+            console.log("An error occurred during the action: ", error);
+            reject(error);
+            break;
+          }
+        }
+      },
+    }),
+  );
 }
 
 async function getEthAddressByIndex(
   appEth: DefaultSignerEth,
   { type, accountIndex }: { type: PathType; accountIndex: number },
 ) {
-  try {
-    const derivationPath = getDerivationPath(type, accountIndex);
-    const account = await getAddressByDerivationPath(appEth, {
-      derivationPath,
-    });
+  const derivationPath = getDerivationPath(type, accountIndex);
+  const account = await getAddressByDerivationPath(appEth, {
+    derivationPath,
+  });
 
-    return { derivationPath, account };
-  } catch (error) {
-    emitter.emit("error", { error });
-    throw error;
-  }
+  return { derivationPath, account };
 }
 
 async function getSolanaAddressByIndex(
   appSol: DefaultSignerSolana,
   { type, accountIndex }: { type: PathType; accountIndex: number },
 ) {
-  try {
-    const derivationPath = getDerivationPath(type, accountIndex);
-    const account = await getSolanaAddressByDerivationPath(appSol, {
-      derivationPath,
-    });
+  const derivationPath = getDerivationPath(type, accountIndex);
+  const account = await getSolanaAddressByDerivationPath(appSol, {
+    derivationPath,
+  });
 
-    return { derivationPath, account };
-  } catch (error) {
-    emitter.emit("error", { error });
-    throw error;
-  }
+  return { derivationPath, account };
 }
 
 function asyncQueue({

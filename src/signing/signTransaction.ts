@@ -1,6 +1,4 @@
-import { TransactionRequest, ethers } from "ethers";
-import type { UnsignedTransaction } from "@ethersproject/transactions";
-import { serialize } from "@ethersproject/transactions";
+import { TransactionLike, ethers } from "ethers";
 import {
   DeviceActionStatus,
   hexaStringToBuffer,
@@ -13,69 +11,16 @@ import {
   SignerSolanaBuilder,
 } from "@ledgerhq/device-signer-kit-solana";
 
-enum ChainId {
-  arbitrum = 42161,
-  base = 8453,
-  optimism = 10,
-  zora = 7777777,
-}
-
-const LEGACY_CHAINS = new Set([
-  ChainId.arbitrum,
-  ChainId.optimism,
-  ChainId.zora,
-  ChainId.base,
-]);
-
-type IncomingTransaction = TransactionRequest & { to: null | string };
-
-function prepareForSerialization(transaction: IncomingTransaction) {
-  const tx: UnsignedTransaction = {
-    chainId: transaction.chainId
-      ? ethers.toNumber(transaction.chainId)
-      : undefined,
-    data: transaction.data || undefined,
-    to: transaction.to || undefined,
-    gasLimit: transaction.gasLimit || undefined,
-    nonce: transaction.nonce ?? undefined,
-    value: transaction.value || undefined,
-  };
-  const isLegacyType = LEGACY_CHAINS.has(tx.chainId as ChainId);
-  if (transaction.gasPrice) {
-    tx.gasPrice = transaction.gasPrice;
-  } else if (!isLegacyType) {
-    tx.maxFeePerGas = transaction.maxFeePerGas || undefined;
-    tx.maxPriorityFeePerGas = transaction.maxPriorityFeePerGas || undefined;
-    tx.type = 2;
-  } else {
-    tx.gasPrice = transaction.maxFeePerGas || undefined;
-  }
-  return tx;
-}
-
-export async function serializeTransaction(transaction: IncomingTransaction) {
-  const tx = prepareForSerialization(transaction);
-  const serializedAsHex = serialize(tx);
-  return serializedAsHex.slice(2); // strip "0x" prefix
-}
-
 export async function signTransaction(
   derivationPath: string,
-  transaction: IncomingTransaction,
+  rawTransaction: TransactionLike,
   sessionId: string,
 ) {
-  console.log("Signing transaction:", transaction, derivationPath);
+  console.log("Signing transaction:", rawTransaction, derivationPath);
   const ethereumAppInstance = new SignerEthBuilder({ dmk, sessionId }).build();
-  if (transaction.nonce == null) {
-    throw new Error("'nonce' is a required property");
-  }
-  if (transaction.gasLimit == null) {
-    throw new Error("'gasLimit' is a required property");
-  }
-  // const { appEth } = await connectDevice();
-  const serializedAsHex = await serializeTransaction(transaction);
-  const uintArrayTx = hexaStringToBuffer(serializedAsHex);
-  const normalizedTransaction = prepareForSerialization(transaction);
+  const { from, ...transactionWithoutFrom } = rawTransaction;
+  const transaction = ethers.Transaction.from(transactionWithoutFrom);
+  const uintArrayTx = hexaStringToBuffer(transaction.unsignedSerialized);
   console.log("About to sign");
   if (!uintArrayTx) {
     throw new Error("Failed to convert transaction to Uint8Array");
@@ -92,7 +37,7 @@ export async function signTransaction(
             console.log("The signing action is not started yet.");
             break;
           }
-          case "pending": {
+          case DeviceActionStatus.Pending: {
             const {
               intermediateValue: { requiredUserInteraction },
             } = state;
@@ -103,28 +48,27 @@ export async function signTransaction(
             );
             break;
           }
-          case "stopped": {
+          case DeviceActionStatus.Stopped: {
             console.log("The signing action has been stopped.");
             break;
           }
-          case "completed": {
+          case DeviceActionStatus.Completed: {
             const { output } = state;
             // Access the output of the completed action here
             console.log("The signing action has been completed: ", output);
-            const { r, s, v } = output;
-            const serialized = serialize(normalizedTransaction, {
-              r,
-              s,
-              v,
+            const signedTx = ethers.Transaction.from({
+              ...transactionWithoutFrom,
+              from,
+              signature: output,
             });
-            resolve({ serialized });
+            resolve({ serialized: signedTx.serialized });
             break;
           }
-          case "error": {
+          case DeviceActionStatus.Error: {
             const { error } = state;
             // Access the error here if occurred
             console.log("An error occurred during the signing action: ", error);
-            reject(error);
+            // reject(error);
             break;
           }
         }
@@ -156,7 +100,7 @@ export async function signSolanaTransaction(
             console.log("The signing action is not started yet.");
             break;
           }
-          case "pending": {
+          case DeviceActionStatus.Pending: {
             const {
               intermediateValue: { requiredUserInteraction },
             } = state;
@@ -167,18 +111,18 @@ export async function signSolanaTransaction(
             );
             break;
           }
-          case "stopped": {
+          case DeviceActionStatus.Stopped: {
             console.log("The signing action has been stopped.");
             break;
           }
-          case "completed": {
+          case DeviceActionStatus.Completed: {
             const { output } = state;
             // Access the output of the completed action here
             console.log("The signing action has been completed: ", output);
             resolve({ signature: output });
             break;
           }
-          case "error": {
+          case DeviceActionStatus.Error: {
             const { error } = state;
             // Access the error here if occurred
             console.log("An error occurred during the signing action: ", error);

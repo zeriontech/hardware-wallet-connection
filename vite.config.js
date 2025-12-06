@@ -23,8 +23,6 @@ export default defineConfig({
       clearPureImport: true,
       rollupTypes: true,
       bundledPackages: [
-        "@ethersproject/bignumber",
-        "@ethersproject/transactions",
         "ethers",
         "@ledgerhq/device-management-kit",
         "@ledgerhq/device-signer-kit-ethereum",
