@@ -1,6 +1,7 @@
 export { connectDevice, checkDevice, transports } from "./device/connectDevice";
 export type { TransportIdentifier } from "./device/connectDevice";
-export { interpretError, deniedByUser, isConnectError } from "./device/errors";
+export { deniedByUser } from "./device/helpers";
+export type { UserInteractionRequested } from "./device/helpers";
 export { getAddressesEth, getAddressesSolana } from "./device/addresses";
 export { supportsLedger, supportsBluetooth } from "./device/support";
 export {

@@ -5,53 +5,59 @@ import {
   TypedData,
 } from "@ledgerhq/device-signer-kit-ethereum";
 import { DeviceActionStatus } from "@ledgerhq/device-management-kit";
+import {
+  LedgerError,
+  REJECTED_BY_USER_ERROR,
+  UserInteractionRequested,
+} from "../device/helpers";
 
 export async function personalSign(
-  derivationPath: string,
-  message: string,
-  sessionId: string,
+  {
+    derivationPath,
+    message,
+  }: {
+    derivationPath: string;
+    message: string;
+  },
+  {
+    sessionId,
+    onInteractionRequested,
+  }: {
+    sessionId: string;
+    onInteractionRequested?: (type: UserInteractionRequested) => void;
+  },
 ) {
   const ethereumAppInstance = new SignerEthBuilder({ dmk, sessionId }).build();
   const { observable } = ethereumAppInstance.signMessage(
     derivationPath,
     message,
   );
-  console.log("About to sign message:", message);
   return new Promise<string>((resolve, reject) => {
     observable.subscribe({
       next: state => {
         switch (state.status) {
           case DeviceActionStatus.NotStarted: {
-            console.log("The signing action is not started yet.");
             break;
           }
           case DeviceActionStatus.Pending: {
             const {
               intermediateValue: { requiredUserInteraction },
             } = state;
-            // Access the intermediate value here, explained below
-            console.log(
-              "The signing action is pending and the intermediate value is: ",
-              requiredUserInteraction,
-            );
+            onInteractionRequested?.(requiredUserInteraction);
             break;
           }
           case DeviceActionStatus.Stopped: {
-            console.log("The signing action has been stopped.");
+            reject(new LedgerError(REJECTED_BY_USER_ERROR));
             break;
           }
           case DeviceActionStatus.Completed: {
             const { output } = state;
-            // Access the output of the completed action here
-            console.log("The signing action has been completed: ", output);
             resolve(ethers.Signature.from(output).serialized);
             break;
           }
           case DeviceActionStatus.Error: {
             const { error } = state;
-            // Access the error here if occurred
-            console.log("An error occurred during the signing action: ", error);
-            // reject(error);
+            reject(error);
             break;
           }
         }
@@ -61,9 +67,20 @@ export async function personalSign(
 }
 
 export async function signTypedData_v4(
-  derivationPath: string,
-  rawTypedData: string | TypedData,
-  sessionId: string,
+  {
+    derivationPath,
+    rawTypedData,
+  }: {
+    derivationPath: string;
+    rawTypedData: string | TypedData;
+  },
+  {
+    sessionId,
+    onInteractionRequested,
+  }: {
+    sessionId: string;
+    onInteractionRequested?: (type: UserInteractionRequested) => void;
+  },
 ) {
   const ethereumAppInstance = new SignerEthBuilder({ dmk, sessionId }).build();
   const typedData =
@@ -77,36 +94,26 @@ export async function signTypedData_v4(
       next: state => {
         switch (state.status) {
           case DeviceActionStatus.NotStarted: {
-            console.log("The signing action is not started yet.");
             break;
           }
           case DeviceActionStatus.Pending: {
             const {
               intermediateValue: { requiredUserInteraction },
             } = state;
-            // Access the intermediate value here, explained below
-            console.log(
-              "The signing action is pending and the intermediate value is: ",
-              requiredUserInteraction,
-            );
+            onInteractionRequested?.(requiredUserInteraction);
             break;
           }
           case DeviceActionStatus.Stopped: {
-            console.log("The signing action has been stopped.");
+            reject(new LedgerError(REJECTED_BY_USER_ERROR));
             break;
           }
           case DeviceActionStatus.Completed: {
             const { output } = state;
-            // Access the output of the completed action here
-            console.log("The signing action has been completed: ", output);
-            // Convert { r, s, v } to standard Ethereum signature format
             resolve(ethers.Signature.from(output).serialized);
             break;
           }
           case DeviceActionStatus.Error: {
             const { error } = state;
-            // Access the error here if occurred
-            console.log("An error occurred during the signing action: ", error);
             reject(error);
             break;
           }

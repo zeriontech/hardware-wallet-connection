@@ -27,26 +27,21 @@ export async function connectDevice({
     sessionId: string;
     device: DiscoveredDevice;
   }>((resolve, reject) => {
-    console.log("Connecting to device...");
     dmk.startDiscovering({ transport: transportIdentifier }).subscribe({
       next: device => {
         const connectedDevices = dmk.listConnectedDevices();
         const alreadyConnected = connectedDevices.find(d => d.id === device.id);
         if (alreadyConnected) {
-          console.log("Device already connected:", device);
           resolve({
             sessionId: alreadyConnected.sessionId,
             device,
           });
         }
-        console.log("Discovered device:", device);
         dmk.connect({ device }).then(sId => {
-          console.log("Device connected with session ID:", sId);
           resolve({ sessionId: sId, device });
         });
       },
       error: error => {
-        console.error(error);
         reject(error);
       },
     });
@@ -58,7 +53,6 @@ export async function checkDevice({
 }: {
   transportIdentifier: TransportIdentifier;
 }) {
-  console.log("Checking device connection status 2...");
   return new Promise<{
     sessionId: string;
     device: DiscoveredDevice;
@@ -67,7 +61,6 @@ export async function checkDevice({
       .listenToAvailableDevices({ transport: transportIdentifier })
       .subscribe(devices => {
         const connectedDevices = dmk.listConnectedDevices();
-        console.log("Web HID devices:", devices, connectedDevices);
         if (devices.length > 0) {
           const alreadyConnected = connectedDevices.find(
             d => d.id === devices[0].id,
@@ -78,9 +71,7 @@ export async function checkDevice({
               device: devices[0],
             });
           }
-          console.log("connecting to device... 123", devices);
           dmk.connect({ device: devices[0] }).then(sId => {
-            console.log("Device connected with session ID:", sId);
             resolve({
               sessionId: sId,
               device: devices[0],
