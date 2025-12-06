@@ -60,8 +60,8 @@ export async function checkDevice({
     dmk
       .listenToAvailableDevices({ transport: transportIdentifier })
       .subscribe(devices => {
-        const connectedDevices = dmk.listConnectedDevices();
         if (devices.length > 0) {
+          const connectedDevices = dmk.listConnectedDevices();
           const alreadyConnected = connectedDevices.find(
             d => d.id === devices[0].id,
           );
