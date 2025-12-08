@@ -13,7 +13,6 @@ export class LedgerError extends Error {
 }
 
 const USER_REJECTED_ERROR_CODE = "6985" as const;
-const UNFINISHED_ACTION_ERROR_CODE = "6a84" as const;
 
 export const REJECTED_BY_USER_ERROR = {
   message: "Condition not satisfied",
@@ -25,10 +24,6 @@ export function deniedByUser(error: LedgerError) {
   return error.errorCode === USER_REJECTED_ERROR_CODE;
 }
 
-export function unfinishedAction(error: LedgerError) {
-  return error.errorCode === UNFINISHED_ACTION_ERROR_CODE;
-}
-
 export type UserInteractionRequested = `${UserInteractionRequired}`;
 
 export async function wait(ms: number) {
@@ -38,10 +33,11 @@ export async function wait(ms: number) {
 export function parseLedgerError(error: unknown): LedgerError {
   console.log("Parsing ledger error:", error);
   return new LedgerError({
-    message:
-      "message" in (error as any) ? (error as any).message : "Unknown error",
+    message: (error as any)?.message || "Unknown error",
     errorCode:
-      "errorCode" in (error as any) ? (error as any).errorCode : undefined,
-    _tag: "_tag" in (error as any) ? (error as any)._tag : undefined,
+      (error as any)?.originalError?.errorCode ||
+      (error as any)?.errorCode ||
+      undefined,
+    _tag: (error as any)?._tag || undefined,
   });
 }
