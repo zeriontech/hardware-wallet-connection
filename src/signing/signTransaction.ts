@@ -14,6 +14,7 @@ import {
   LedgerError,
   parseLedgerError,
   REJECTED_BY_USER_ERROR,
+  UserInteractionRequested,
 } from "../device/helpers";
 
 export async function signTransaction(
@@ -26,7 +27,7 @@ export async function signTransaction(
     onInteractionRequested,
   }: {
     sessionId: string;
-    onInteractionRequested?: (type: string) => void;
+    onInteractionRequested?: (type: UserInteractionRequested) => void;
   },
 ) {
   const ethereumAppInstance = new SignerEthBuilder({ dmk, sessionId }).build();
@@ -92,7 +93,7 @@ export async function signSolanaTransaction(
     onInteractionRequested,
   }: {
     sessionId: string;
-    onInteractionRequested?: (type: string) => void;
+    onInteractionRequested?: (type: UserInteractionRequested) => void;
   },
 ) {
   const solanaAppInstance = new SignerSolanaBuilder({ dmk, sessionId }).build();

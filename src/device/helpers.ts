@@ -1,4 +1,4 @@
-import { UserInteractionRequired } from "@ledgerhq/device-management-kit";
+import type { UserInteractionRequired } from "@ledgerhq/device-management-kit";
 
 export class LedgerError extends Error {
   errorCode?: string;

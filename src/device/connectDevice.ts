@@ -1,4 +1,4 @@
-import { DiscoveredDevice } from "@ledgerhq/device-management-kit";
+import type { DiscoveredDevice } from "@ledgerhq/device-management-kit";
 import {
   ConsoleLogger,
   DeviceManagementKitBuilder,

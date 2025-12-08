@@ -1,9 +1,6 @@
-import { ethers } from "ethers";
+import { ethers, TypedDataDomain, TypedDataField } from "ethers";
 import { dmk } from "../device/connectDevice";
-import {
-  SignerEthBuilder,
-  TypedData,
-} from "@ledgerhq/device-signer-kit-ethereum";
+import { SignerEthBuilder } from "@ledgerhq/device-signer-kit-ethereum";
 import { DeviceActionStatus } from "@ledgerhq/device-management-kit";
 import {
   LedgerError,
@@ -65,6 +62,14 @@ export async function personalSign(
       },
     });
   });
+}
+
+// Using types from ethers here to align with the types in the exernal code
+interface TypedData {
+  domain: TypedDataDomain;
+  types: Record<string, Array<TypedDataField>>;
+  message: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  primaryType?: string;
 }
 
 export async function signTypedData_v4(
