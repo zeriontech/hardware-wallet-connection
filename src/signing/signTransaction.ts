@@ -10,7 +10,11 @@ import {
   Signature,
   SignerSolanaBuilder,
 } from "@ledgerhq/device-signer-kit-solana";
-import { LedgerError, REJECTED_BY_USER_ERROR } from "../device/helpers";
+import {
+  LedgerError,
+  parseLedgerError,
+  REJECTED_BY_USER_ERROR,
+} from "../device/helpers";
 
 export async function signTransaction(
   {
@@ -69,7 +73,7 @@ export async function signTransaction(
           }
           case DeviceActionStatus.Error: {
             const { error } = state;
-            reject(error);
+            reject(parseLedgerError(error));
             break;
           }
         }
@@ -128,7 +132,7 @@ export async function signSolanaTransaction(
           }
           case DeviceActionStatus.Error: {
             const { error } = state;
-            reject(error);
+            reject(parseLedgerError(error));
             break;
           }
         }

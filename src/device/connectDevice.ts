@@ -5,6 +5,7 @@ import {
 } from "@ledgerhq/device-management-kit";
 import { webHidTransportFactory } from "@ledgerhq/device-transport-kit-web-hid";
 import { webBleTransportFactory } from "@ledgerhq/device-transport-kit-web-ble";
+import { parseLedgerError, wait } from "./helpers";
 
 export const transports = {
   bluetooth: "WEB-BLE-RN-STYLE",
@@ -35,11 +36,13 @@ export async function connectDevice({
           resolve({ sessionId: alreadyConnected.sessionId, device });
         }
         dmk.connect({ device }).then(sId => {
-          resolve({ sessionId: sId, device });
+          wait(100).then(() => {
+            resolve({ sessionId: sId, device });
+          });
         });
       },
       error: error => {
-        reject(error);
+        reject(parseLedgerError(error));
       },
     });
   });
@@ -69,7 +72,9 @@ export async function checkDevice({
             resolve({ sessionId: connectedDevice.sessionId, device });
           }
           dmk.connect({ device }).then(sId => {
-            resolve({ sessionId: sId, device });
+            wait(100).then(() => {
+              resolve({ sessionId: sId, device });
+            });
           });
         }
       });

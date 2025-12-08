@@ -7,6 +7,7 @@ import {
 import { DeviceActionStatus } from "@ledgerhq/device-management-kit";
 import {
   LedgerError,
+  parseLedgerError,
   REJECTED_BY_USER_ERROR,
   UserInteractionRequested,
 } from "../device/helpers";
@@ -57,7 +58,7 @@ export async function personalSign(
           }
           case DeviceActionStatus.Error: {
             const { error } = state;
-            reject(error);
+            reject(parseLedgerError(error));
             break;
           }
         }
@@ -114,7 +115,7 @@ export async function signTypedData_v4(
           }
           case DeviceActionStatus.Error: {
             const { error } = state;
-            reject(error);
+            reject(parseLedgerError(error));
             break;
           }
         }

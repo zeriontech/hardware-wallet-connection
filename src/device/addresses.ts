@@ -8,6 +8,7 @@ import {
   UserInteractionRequested,
   LedgerError,
   REJECTED_BY_USER_ERROR,
+  parseLedgerError,
 } from "./helpers";
 
 const paths = {
@@ -60,7 +61,7 @@ async function getAddressByDerivationPath({
           }
           case DeviceActionStatus.Error: {
             const { error } = state;
-            reject(error);
+            reject(parseLedgerError(error));
             break;
           }
         }
@@ -104,7 +105,7 @@ async function getSolanaAddressByDerivationPath({
           }
           case DeviceActionStatus.Error: {
             const { error } = state;
-            reject(error);
+            reject(parseLedgerError(error));
             break;
           }
         }
@@ -158,9 +159,11 @@ async function getSolanaAddressByIndex({
 function asyncQueue({
   numberOfIterations,
   asyncFn,
+  onProgress,
 }: {
   numberOfIterations: number;
   asyncFn: (index: number) => Promise<any>;
+  onProgress?: (progress: number) => void;
 }) {
   return new Promise<void>((resolve, reject) => {
     let index = 0;
@@ -168,8 +171,10 @@ function asyncQueue({
       asyncFn(index++)
         .then(() => {
           if (index < numberOfIterations) {
+            onProgress?.(index);
             invoke();
           } else {
+            onProgress?.(numberOfIterations);
             resolve();
           }
         })
@@ -186,12 +191,13 @@ export async function getAddressesEth(
   {
     sessionId,
     onInteractionRequested,
+    onProgress,
   }: {
     sessionId: string;
     onInteractionRequested?: (type: UserInteractionRequested) => void;
+    onProgress?: (progress: number) => void;
   },
 ) {
-  console.log("Getting ETH addresses:", { sessionId, type, from, count });
   const ethereumAppInstance = new SignerEthBuilder({ dmk, sessionId }).build();
   const addresses: Array<Awaited<ReturnType<typeof getEthAddressByIndex>>> = [];
   await asyncQueue({
@@ -203,9 +209,9 @@ export async function getAddressesEth(
         accountIndex: from + index,
         onInteractionRequested,
       });
-      console.log("Got address data:", addressData);
       addresses.push(addressData);
     },
+    onProgress,
   });
   return addresses;
 }
@@ -215,9 +221,11 @@ export async function getAddressesSolana(
   {
     sessionId,
     onInteractionRequested,
+    onProgress,
   }: {
     sessionId: string;
     onInteractionRequested?: (type: UserInteractionRequested) => void;
+    onProgress?: (progress: number) => void;
   },
 ) {
   const solanaAppInstance = new SignerSolanaBuilder({ dmk, sessionId }).build();
@@ -234,6 +242,7 @@ export async function getAddressesSolana(
       });
       addresses.push(addressData);
     },
+    onProgress,
   });
   return addresses;
 }
