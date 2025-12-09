@@ -1,4 +1,3 @@
-import type { DiscoveredDevice } from "@ledgerhq/device-management-kit";
 import {
   ConsoleLogger,
   DeviceManagementKitBuilder,
@@ -12,6 +11,13 @@ export const transports = {
   hid: "WEB-HID",
 } as const;
 export type TransportIdentifier = (typeof transports)[keyof typeof transports];
+
+type DiscoveredDevice = {
+  readonly id: string;
+  readonly name: string;
+  readonly transport: string;
+  readonly rssi?: number | null;
+};
 
 export const dmk = new DeviceManagementKitBuilder()
   .addLogger(new ConsoleLogger())

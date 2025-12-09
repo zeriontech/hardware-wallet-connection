@@ -1,5 +1,3 @@
-import type { UserInteractionRequired } from "@ledgerhq/device-management-kit";
-
 export class LedgerError extends Error {
   errorCode?: string;
   _tag?: string;
@@ -12,19 +10,35 @@ export class LedgerError extends Error {
   }
 }
 
-const USER_REJECTED_ERROR_CODE = "6985" as const;
+const USER_REJECTED_MESSAGE = "Condition not satisfied" as const;
 
 export const REJECTED_BY_USER_ERROR = {
-  message: "Condition not satisfied",
+  message: USER_REJECTED_MESSAGE,
   _tag: "EthAppCommandError",
-  errorCode: USER_REJECTED_ERROR_CODE,
+  errorCode: "6985",
 } as const;
 
 export function deniedByUser(error: LedgerError) {
-  return error.errorCode === USER_REJECTED_ERROR_CODE;
+  return error.message === USER_REJECTED_MESSAGE;
 }
 
-export type UserInteractionRequested = `${UserInteractionRequired}`;
+export function getDeniedByUserError() {
+  return new LedgerError(REJECTED_BY_USER_ERROR);
+}
+
+export type UserInteractionRequested =
+  | "none"
+  | "unlock-device"
+  | "allow-secure-connection"
+  | "confirm-open-app"
+  | "sign-transaction"
+  | "sign-typed-data"
+  | "allow-list-apps"
+  | "verify-address"
+  | "sign-personal-message"
+  | "sign-delegation-authorization"
+  | "web3-checks-opt-in"
+  | "verify-safe-address";
 
 export async function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
