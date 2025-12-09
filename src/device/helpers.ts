@@ -8,6 +8,12 @@ export class LedgerError extends Error {
     this.errorCode = params.errorCode;
     this._tag = params._tag;
   }
+
+  toString() {
+    return `LedgerError: ${this.message}${
+      this.errorCode ? ` (error code: ${this.errorCode})` : ""
+    }${this._tag ? ` (tag: ${this._tag})` : ""}`;
+  }
 }
 
 const USER_REJECTED_MESSAGE = "Condition not satisfied" as const;
@@ -19,7 +25,7 @@ export const REJECTED_BY_USER_ERROR = {
 } as const;
 
 export function deniedByUser(error: LedgerError) {
-  return error.message === USER_REJECTED_MESSAGE;
+  return error.message.startsWith(USER_REJECTED_MESSAGE);
 }
 
 export function getDeniedByUserError() {
@@ -45,7 +51,20 @@ export async function wait(ms: number) {
 }
 
 export function parseLedgerError(error: unknown): LedgerError {
-  console.log("Parsing ledger error:", error);
+  if (typeof error === "string") {
+    const ledgerErrorPattern = /^LedgerError:\s*(.+?)(?:\s*\(error code:\s*(.+?)\))?(?:\s*\(tag:\s*(.+?)\))?$/;
+    const match = error.match(ledgerErrorPattern);
+
+    if (match) {
+      return new LedgerError({
+        message: match[1].trim(),
+        errorCode: match[2] || undefined,
+        _tag: match[3] || undefined,
+      });
+    }
+
+    return new LedgerError({ message: error });
+  }
   return new LedgerError({
     message: (error as any)?.message || "Unknown error",
     errorCode:
@@ -54,4 +73,8 @@ export function parseLedgerError(error: unknown): LedgerError {
       undefined,
     _tag: (error as any)?._tag || undefined,
   });
+}
+
+export function hardwareWalletError(error: unknown): boolean {
+  return error instanceof LedgerError;
 }
