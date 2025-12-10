@@ -17,7 +17,7 @@ import {
   UserInteractionRequested,
 } from "../device/helpers";
 
-export async function signTransaction(
+export function signTransaction(
   {
     derivationPath,
     rawTransaction,
@@ -39,12 +39,12 @@ export async function signTransaction(
     throw new Error("Failed to convert transaction to Uint8Array");
   }
 
-  const { observable } = ethereumAppInstance.signTransaction(
+  const { observable, cancel } = ethereumAppInstance.signTransaction(
     derivationPath,
     uintArrayTx,
   );
 
-  return new Promise<{ serialized: string }>((resolve, reject) => {
+  const promise = new Promise<{ serialized: string }>((resolve, reject) => {
     observable.subscribe({
       next: state => {
         switch (state.status) {
@@ -81,9 +81,10 @@ export async function signTransaction(
       },
     });
   });
+  return { promise, cancel };
 }
 
-export async function signSolanaTransaction(
+export function signSolanaTransaction(
   {
     derivationPath,
     transaction,
@@ -103,12 +104,12 @@ export async function signSolanaTransaction(
     throw new Error("Failed to convert transaction to Uint8Array");
   }
 
-  const { observable } = solanaAppInstance.signTransaction(
+  const { observable, cancel } = solanaAppInstance.signTransaction(
     derivationPath,
     uintArrayTx,
   );
 
-  return new Promise<{ signature: Signature }>((resolve, reject) => {
+  const promise = new Promise<{ signature: Signature }>((resolve, reject) => {
     observable.subscribe({
       next: state => {
         switch (state.status) {
@@ -140,4 +141,5 @@ export async function signSolanaTransaction(
       },
     });
   });
+  return { promise, cancel };
 }

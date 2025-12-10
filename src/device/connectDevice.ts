@@ -115,13 +115,11 @@ export async function checkDevice({
         const connectedDevice = connectedDevices.find(
           d => d.id === expectedDeviceId,
         );
-        console.log({ connectedDevices });
         if (connectedDevice) {
           unsubscribeCheckDeviceListeners();
           resolve({ sessionId: connectedDevice.sessionId, device });
           return;
         }
-        console.log("Device is connecting:", device);
         dmk.connect({ device }).then(sId => {
           unsubscribeCheckDeviceListeners();
           wait(100).then(() => {

@@ -9,7 +9,7 @@ import {
   UserInteractionRequested,
 } from "../device/helpers";
 
-export async function personalSign(
+export function personalSign(
   {
     derivationPath,
     message,
@@ -26,11 +26,11 @@ export async function personalSign(
   },
 ) {
   const ethereumAppInstance = new SignerEthBuilder({ dmk, sessionId }).build();
-  const { observable } = ethereumAppInstance.signMessage(
+  const { observable, cancel } = ethereumAppInstance.signMessage(
     derivationPath,
     message,
   );
-  return new Promise<string>((resolve, reject) => {
+  const promise = new Promise<string>((resolve, reject) => {
     observable.subscribe({
       next: state => {
         switch (state.status) {
@@ -62,6 +62,7 @@ export async function personalSign(
       },
     });
   });
+  return { promise, cancel };
 }
 
 // Using types from ethers here to align with the types in the exernal code
@@ -72,7 +73,7 @@ interface TypedData {
   primaryType?: string;
 }
 
-export async function signTypedData_v4(
+export function signTypedData_v4(
   {
     derivationPath,
     rawTypedData,
@@ -91,11 +92,11 @@ export async function signTypedData_v4(
   const ethereumAppInstance = new SignerEthBuilder({ dmk, sessionId }).build();
   const typedData =
     typeof rawTypedData === "string" ? JSON.parse(rawTypedData) : rawTypedData;
-  const { observable } = ethereumAppInstance.signTypedData(
+  const { observable, cancel } = ethereumAppInstance.signTypedData(
     derivationPath,
     typedData,
   );
-  return new Promise<string>((resolve, reject) => {
+  const promise = new Promise<string>((resolve, reject) => {
     observable.subscribe({
       next: state => {
         switch (state.status) {
@@ -127,4 +128,5 @@ export async function signTypedData_v4(
       },
     });
   });
+  return { promise, cancel };
 }
