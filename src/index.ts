@@ -1,4 +1,9 @@
-export { connectDevice, checkDevice, transports } from "./device/connectDevice";
+export {
+  connectDevice,
+  checkDevice,
+  transports,
+  unsubscribeCheckDeviceListeners,
+} from "./device/connectDevice";
 export type { TransportIdentifier } from "./device/connectDevice";
 export {
   deniedByUser,

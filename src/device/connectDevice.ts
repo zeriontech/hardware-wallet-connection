@@ -54,6 +54,37 @@ export async function connectDevice({
   });
 }
 
+let hidDeviceListener: ReturnType<typeof dmk.listenToAvailableDevices> | null =
+  null;
+let bleDeviceListener: ReturnType<typeof dmk.listenToAvailableDevices> | null =
+  null;
+
+function getDeviceListener(transportIdentifier: TransportIdentifier) {
+  if (transportIdentifier === transports.hid) {
+    if (!hidDeviceListener) {
+      hidDeviceListener = dmk.listenToAvailableDevices({
+        transport: transportIdentifier,
+      });
+    }
+    return hidDeviceListener;
+  } else {
+    if (!bleDeviceListener) {
+      bleDeviceListener = dmk.listenToAvailableDevices({
+        transport: transportIdentifier,
+      });
+    }
+    return bleDeviceListener;
+  }
+}
+
+let deviceListener: ReturnType<
+  ReturnType<typeof dmk.listenToAvailableDevices>["subscribe"]
+> | null = null;
+
+export function unsubscribeCheckDeviceListeners() {
+  deviceListener?.unsubscribe();
+}
+
 export async function checkDevice({
   transportIdentifier,
   deviceId,
@@ -65,24 +96,40 @@ export async function checkDevice({
     sessionId: string;
     device: DiscoveredDevice;
   }>(resolve => {
-    dmk
-      .listenToAvailableDevices({ transport: transportIdentifier })
-      .subscribe(devices => {
-        if (devices.length > 0) {
-          const expectedDeviceId = deviceId || devices[0].id;
-          const device = devices.find(d => d.id === expectedDeviceId)!;
-          const connectedDevice = dmk
-            .listConnectedDevices()
-            .find(d => d.id === expectedDeviceId);
-          if (connectedDevice) {
-            resolve({ sessionId: connectedDevice.sessionId, device });
-          }
-          dmk.connect({ device }).then(sId => {
-            wait(100).then(() => {
-              resolve({ sessionId: sId, device });
-            });
-          });
-        }
+    const connectedDevices = dmk.listConnectedDevices();
+    const connectedDevice = deviceId
+      ? connectedDevices.find(d => d.id === deviceId)
+      : connectedDevices[0];
+    if (connectedDevice) {
+      resolve({
+        sessionId: connectedDevice.sessionId,
+        device: connectedDevice,
       });
+      return;
+    }
+
+    getDeviceListener(transportIdentifier).subscribe(devices => {
+      if (devices.length > 0) {
+        const expectedDeviceId = deviceId || devices[0].id;
+        const device = devices.find(d => d.id === expectedDeviceId)!;
+        const connectedDevice = connectedDevices.find(
+          d => d.id === expectedDeviceId,
+        );
+        console.log({ connectedDevices });
+        if (connectedDevice) {
+          unsubscribeCheckDeviceListeners();
+          resolve({ sessionId: connectedDevice.sessionId, device });
+          return;
+        }
+        console.log("Device is connecting:", device);
+        dmk.connect({ device }).then(sId => {
+          unsubscribeCheckDeviceListeners();
+          wait(100).then(() => {
+            resolve({ sessionId: sId, device });
+            return;
+          });
+        });
+      }
+    });
   });
 }
