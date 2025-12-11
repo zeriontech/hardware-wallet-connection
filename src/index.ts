@@ -19,4 +19,8 @@ export {
   signTransaction,
   signSolanaTransaction,
 } from "./signing/signTransaction";
-export { personalSign, signTypedData_v4 } from "./signing/signMessage";
+export {
+  personalSign,
+  signTypedData_v4,
+  solanaSignMessage,
+} from "./signing/signMessage";
