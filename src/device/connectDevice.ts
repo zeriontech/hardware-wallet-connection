@@ -40,10 +40,17 @@ export async function connectDevice({
         const alreadyConnected = connectedDevices.find(d => d.id === device.id);
         if (alreadyConnected) {
           resolve({ sessionId: alreadyConnected.sessionId, device });
+          return;
         }
         dmk.connect({ device }).then(sId => {
+          /**
+           * For some reason if there is a request right after connecting,
+           * the device may not be ready yet and request can fail.
+           * Adding a small delay to ensure the device is ready.
+           */
           wait(100).then(() => {
             resolve({ sessionId: sId, device });
+            return;
           });
         });
       },
@@ -54,6 +61,12 @@ export async function connectDevice({
   });
 }
 
+/**
+ * Singleton approach for listeners for HID and BLE transports
+ * to avoid multiple listeners being created.
+ * Multiple listeneres can cause race condition issues
+ * during the device detection process.
+ */
 let hidDeviceListener: ReturnType<typeof dmk.listenToAvailableDevices> | null =
   null;
 let bleDeviceListener: ReturnType<typeof dmk.listenToAvailableDevices> | null =
@@ -114,6 +127,11 @@ export async function checkDevice({
         const device = devices.find(d => d.id === expectedDeviceId)!;
         dmk.connect({ device }).then(sId => {
           unsubscribeCheckDeviceListeners();
+          /**
+           * For some reason if there is a request right after connecting,
+           * the device may not be ready yet and request can fail.
+           * Adding a small delay to ensure the device is ready.
+           */
           wait(100).then(() => {
             resolve({ sessionId: sId, device });
             return;

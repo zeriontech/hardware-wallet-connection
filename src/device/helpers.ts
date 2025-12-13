@@ -32,6 +32,11 @@ export function getDeniedByUserError() {
   return new LedgerError(REJECTED_BY_USER_ERROR);
 }
 
+/**
+ * Defined this type inline here to avoid dependency issues.
+ * For some reason bundler places this type in src and using ./src import
+ * causes issues in the main repository.
+ */
 export type UserInteractionRequested =
   | "none"
   | "unlock-device"

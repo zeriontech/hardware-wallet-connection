@@ -100,6 +100,10 @@ export function signSolanaTransaction(
   const solanaAppInstance = new SignerSolanaBuilder({
     dmk,
     sessionId,
+    /**
+     * Specify origin token to make send form work with tokens other than SOL.
+     * Looks like a issue in the SDK.
+     */
     originToken: "Solana",
   }).build();
   const uintArrayTx = base64StringToBuffer(transaction);
