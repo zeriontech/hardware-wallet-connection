@@ -52,7 +52,8 @@ export async function wait(ms: number) {
 
 export function parseLedgerError(error: unknown): LedgerError {
   if (typeof error === "string") {
-    const ledgerErrorPattern = /^LedgerError:\s*(.+?)(?:\s*\(error code:\s*(.+?)\))?(?:\s*\(tag:\s*(.+?)\))?$/;
+    const ledgerErrorPattern =
+      /^LedgerError:\s*(.+?)(?:\s*\(error code:\s*(.+?)\))?(?:\s*\(tag:\s*(.+?)\))?$/;
     const match = error.match(ledgerErrorPattern);
 
     if (match) {
@@ -77,4 +78,11 @@ export function parseLedgerError(error: unknown): LedgerError {
 
 export function hardwareWalletError(error: unknown): boolean {
   return error instanceof LedgerError;
+}
+
+export function getHardwareError(error: unknown): LedgerError | null {
+  if (error instanceof LedgerError) {
+    return error;
+  }
+  return null;
 }

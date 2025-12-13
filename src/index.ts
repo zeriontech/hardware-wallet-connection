@@ -11,6 +11,7 @@ export {
   LedgerError,
   getDeniedByUserError,
   hardwareWalletError,
+  getHardwareError,
 } from "./device/helpers";
 export type { UserInteractionRequested } from "./device/helpers";
 export { getAddressesEth, getAddressesSolana } from "./device/addresses";
