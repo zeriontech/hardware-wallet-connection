@@ -97,7 +97,11 @@ export function signSolanaTransaction(
     onInteractionRequested?: (type: UserInteractionRequested) => void;
   },
 ) {
-  const solanaAppInstance = new SignerSolanaBuilder({ dmk, sessionId }).build();
+  const solanaAppInstance = new SignerSolanaBuilder({
+    dmk,
+    sessionId,
+    originToken: "Solana",
+  }).build();
   const uintArrayTx = base64StringToBuffer(transaction);
 
   if (!uintArrayTx) {
