@@ -23,15 +23,12 @@ export default defineConfig({
       clearPureImport: true,
       rollupTypes: true,
       bundledPackages: [
-        "@ethersproject/bignumber",
-        "@ethersproject/transactions",
-        "@ledgerhq/devices",
-        "@ledgerhq/domain-service",
-        "@ledgerhq/hw-app-eth",
-        "@ledgerhq/hw-transport",
-        "@ledgerhq/hw-transport-webusb",
-        "@ledgerhq/types-live",
         "ethers",
+        "@ledgerhq/device-management-kit",
+        "@ledgerhq/device-signer-kit-ethereum",
+        "@ledgerhq/device-signer-kit-solana",
+        "@ledgerhq/device-transport-kit-web-ble",
+        "@ledgerhq/device-transport-kit-web-hid",
       ],
       afterBuild: async () => {
         /**

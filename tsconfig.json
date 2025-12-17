@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "target": "es2021",
-    "module": "esnext",
+    "module": "ESNext",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
     "noUnusedLocals": true,
     "lib": ["esnext", "dom"]

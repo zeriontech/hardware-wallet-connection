@@ -1,14 +1,27 @@
-import { Buffer } from "buffer";
-globalThis.Buffer = Buffer;
-export function prepareBuffer(globalThisObject: any) {
-  globalThisObject.Buffer = Buffer;
-}
-export { connectDevice, checkDevice } from "./device/connectDevice";
-export { interpretError, deniedByUser, isConnectError } from "./device/errors";
-export { getAddressByDerivationPath, getAddresses } from "./device/addresses";
-export { supportsLedger } from "./device/support";
+export {
+  connectDevice,
+  checkDevice,
+  transports,
+  unsubscribeCheckDeviceListeners,
+} from "./device/connectDevice";
+export type { TransportIdentifier } from "./device/connectDevice";
+export {
+  deniedByUser,
+  parseLedgerError,
+  LedgerError,
+  getDeniedByUserError,
+  hardwareWalletError,
+  getHardwareError,
+} from "./device/helpers";
+export type { UserInteractionRequested } from "./device/helpers";
+export { getAddressesEth, getAddressesSolana } from "./device/addresses";
+export { supportsLedger, supportsBluetooth } from "./device/support";
 export {
   signTransaction,
-  serializeTransaction,
+  signSolanaTransaction,
 } from "./signing/signTransaction";
-export { personalSign, signTypedData_v4 } from "./signing/signMessage";
+export {
+  personalSign,
+  signTypedData_v4,
+  solanaSignMessage,
+} from "./signing/signMessage";

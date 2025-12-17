@@ -1,53 +1,143 @@
-import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
-import AppEth from "@ledgerhq/hw-app-eth";
-import { enqueueCall } from "./utils/requestQueue";
-import { emitter } from "../events";
-import { ConnectError } from "./errors";
+import {
+  ConsoleLogger,
+  DeviceManagementKitBuilder,
+} from "@ledgerhq/device-management-kit";
+import { webHidTransportFactory } from "@ledgerhq/device-transport-kit-web-hid";
+import { webBleTransportFactory } from "@ledgerhq/device-transport-kit-web-ble";
+import { parseLedgerError, wait } from "./helpers";
 
-async function ensureEthereumAppIsRunning(appEth: AppEth) {
-  try {
-    /**
-     * Calling appEth.getAppConfiguration() is a way to check if the
-     * Etherium app is opened on the ledger device. If it's not opened,
-     * this method will throw.
-     */
-    const { version } = await enqueueCall(() => appEth.getAppConfiguration());
-    console.log({ version }); // eslint-disable-line
-    return { version };
-  } catch (error) {
-    emitter.emit("error", { error });
-    throw error;
-  }
+export const transports = {
+  bluetooth: "WEB-BLE-RN-STYLE",
+  hid: "WEB-HID",
+} as const;
+export type TransportIdentifier = (typeof transports)[keyof typeof transports];
+
+type DiscoveredDevice = {
+  readonly id: string;
+  readonly name: string;
+  readonly transport: string;
+  readonly rssi?: number | null;
+};
+
+export const dmk = new DeviceManagementKitBuilder()
+  .addLogger(new ConsoleLogger())
+  .addTransport(webHidTransportFactory)
+  .addTransport(webBleTransportFactory)
+  .build();
+
+export async function connectDevice({
+  transportIdentifier,
+}: {
+  transportIdentifier: TransportIdentifier;
+}) {
+  return await new Promise<{
+    sessionId: string;
+    device: DiscoveredDevice;
+  }>((resolve, reject) => {
+    dmk.startDiscovering({ transport: transportIdentifier }).subscribe({
+      next: device => {
+        const connectedDevices = dmk.listConnectedDevices();
+        const alreadyConnected = connectedDevices.find(d => d.id === device.id);
+        if (alreadyConnected) {
+          resolve({ sessionId: alreadyConnected.sessionId, device });
+          return;
+        }
+        dmk.connect({ device }).then(sId => {
+          /**
+           * For some reason if there is a request right after connecting,
+           * the device may not be ready yet and request can fail.
+           * Adding a small delay to ensure the device is ready.
+           */
+          wait(100).then(() => {
+            resolve({ sessionId: sId, device });
+            return;
+          });
+        });
+      },
+      error: error => {
+        reject(parseLedgerError(error));
+      },
+    });
+  });
 }
 
-export async function connectDevice() {
-  try {
-    const transport = await enqueueCall(() => TransportWebUSB.create());
-    const appEth = new AppEth(transport);
-    const { version } = await ensureEthereumAppIsRunning(appEth);
-    return { appEth, transport, appVersion: version };
-  } catch (error) {
-    emitter.emit("error", { error });
-    throw error;
-  }
-}
+/**
+ * Singleton approach for listeners for HID and BLE transports
+ * to avoid multiple listeners being created.
+ * Multiple listeneres can cause race condition issues
+ * during the device detection process.
+ */
+let hidDeviceListener: ReturnType<typeof dmk.listenToAvailableDevices> | null =
+  null;
+let bleDeviceListener: ReturnType<typeof dmk.listenToAvailableDevices> | null =
+  null;
 
-export async function checkDevice() {
-  /**
-   * This function checks if the device is connected
-   * without ever displaying device permission window.
-   * This check may be safely performed in background.
-   */
-  try {
-    const transport = await enqueueCall(() => TransportWebUSB.openConnected());
-    if (!transport) {
-      throw new ConnectError("disconnected");
+function getDeviceListener(transportIdentifier: TransportIdentifier) {
+  if (transportIdentifier === transports.hid) {
+    if (!hidDeviceListener) {
+      hidDeviceListener = dmk.listenToAvailableDevices({
+        transport: transportIdentifier,
+      });
     }
-    const appEth = new AppEth(transport);
-    const { version } = await ensureEthereumAppIsRunning(appEth);
-    return { appEth, transport, appVersion: version };
-  } catch (error) {
-    emitter.emit("error", { error });
-    throw error;
+    return hidDeviceListener;
+  } else {
+    if (!bleDeviceListener) {
+      bleDeviceListener = dmk.listenToAvailableDevices({
+        transport: transportIdentifier,
+      });
+    }
+    return bleDeviceListener;
   }
+}
+
+let deviceListener: ReturnType<
+  ReturnType<typeof dmk.listenToAvailableDevices>["subscribe"]
+> | null = null;
+
+export function unsubscribeCheckDeviceListeners() {
+  deviceListener?.unsubscribe();
+}
+
+export async function checkDevice({
+  transportIdentifier,
+  deviceId,
+}: {
+  transportIdentifier: TransportIdentifier;
+  deviceId?: string;
+}) {
+  return new Promise<{
+    sessionId: string;
+    device: DiscoveredDevice;
+  }>(resolve => {
+    const connectedDevices = dmk.listConnectedDevices();
+    const connectedDevice = deviceId
+      ? connectedDevices.find(d => d.id === deviceId)
+      : connectedDevices[0];
+    if (connectedDevice) {
+      resolve({
+        sessionId: connectedDevice.sessionId,
+        device: connectedDevice,
+      });
+      return;
+    }
+
+    getDeviceListener(transportIdentifier).subscribe(devices => {
+      if (devices.length > 0) {
+        const expectedDeviceId = deviceId || devices[0].id;
+        const device = devices.find(d => d.id === expectedDeviceId)!;
+        dmk.connect({ device }).then(sId => {
+          unsubscribeCheckDeviceListeners();
+          /**
+           * For some reason if there is a request right after connecting,
+           * the device may not be ready yet and request can fail.
+           * Adding a small delay to ensure the device is ready.
+           */
+          wait(100).then(() => {
+            resolve({ sessionId: sId, device });
+            return;
+          });
+        });
+      }
+    });
+  });
 }
